@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mölkky Scoresheet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #FFFFFF;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1E1E1E;
+        }
+        table, th, td {
+            border: 1px solid #333333;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #2C2C2C;
+        }
+        input[type="number"] {
+            width: 60px;
+            background-color: #333333;
+            color: #FFFFFF;
+            border: 1px solid #555555;
+            text-align: center;
+        }
+        input[type="text"] {
+            background-color: #333333;
+            color: #FFFFFF;
+            border: 1px solid #555555;
+        }
+        button {
+            background-color: #444444;
+            color: #FFFFFF;
+            border: 1px solid #555555;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555555;
+        }
+
+        #addTurnBtn {
+            width: 100%;
+        }
+    </style>
+    <script>
+        const players = [];
+        const turns = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const addButton = document.createElement('button');
+            addButton.textContent = 'Add Turn';
+            addButton.onclick = addTurnScores;
+            addButton.id = "addTurnBtn";
+            document.body.appendChild(addButton);
+
+            loadFromQueryString();
+
+            // Initialize with one turn if no turns exist
+            if (turns.length === 0) addTurnScores();
+
+            document.getElementById('playerTeam').value = 1;
+        });
+
+        function addPlayer() {
+            const playerName = document.getElementById('playerName').value;
+            const playerTeam = parseInt(document.getElementById('playerTeam').value);
+            if (playerName && !isNaN(playerTeam)) {
+                const initialScores = new Array(turns.length).fill(0);
+                players.push({ name: playerName, team: playerTeam, scores: initialScores });
+                turns.forEach(turn => {
+                    turn.push(0);
+                });
+                document.getElementById('playerName').value = '';
+                updateScoresTable();
+                updateQueryString();
+            }
+        }
+
+        function addTurnScores() {
+            const turnScores = players.map(() => 0); // Initialize all scores to 0 for the new turn
+            turns.push(turnScores);
+            players.forEach((player, index) => {
+                player.scores.push(turnScores[index]);
+            });
+            updateScoresTable();
+            updateQueryString();
+        }
+
+        function getTotalScore(player, turnIndex) {
+            const targetScore = parseInt(document.getElementById('targetScore').value);
+            const resetScore = parseInt(document.getElementById('resetScore').value);
+
+            return player.scores.slice(0, turnIndex + 1).reduce((total, score, index, scores) => {
+                let turnSum = total + score;
+                if (turnSum > targetScore) {
+                    turnSum = resetScore;
+                }
+
+                // Check for three consecutive zeros
+                if (index >= 2 &&
+                    scores[index] === 0 &&
+                    scores[index - 1] === 0 &&
+                    scores[index - 2] === 0
+                ) {
+                    // Set all future scores to 0
+                    player.scores.fill(0, index + 1);
+                    turnSum = 0;
+                }
+                
+                return turnSum;
+            }, 0);
+        }
+
+        function updateScoresTable() {
+            const scoresTableHead = document.getElementById('scoresTable').querySelector('thead tr');
+            const scoresTableBody = document.getElementById('scoresTable').querySelector('tbody');
+            // Reset table
+            scoresTableHead.innerHTML = '<th>Turn</th>';
+            scoresTableBody.innerHTML = '';
+
+            // Sort players by team number
+            players.sort((a, b) => a.team - b.team);
+
+            // Add headers with player names and team numbers as input fields
+            let i = 0;
+            players.forEach((player, index) => {
+                const th = document.createElement('th');
+                th.innerHTML = `
+                   <div>
+                       Player Name: <input type="text" value="${player.name}" onchange="updatePlayerName(${index}, this.value)">
+                       Team: <input type="number" value="${player.team}" min="0" onchange="updatePlayerTeam(${index}, this.value)">
+                   </div>
+                `;
+                scoresTableHead.appendChild(th);
+
+                let isLastInTeam = (i+1)>=players.length || players[index].team != players[i+1].team;
+                if(isLastInTeam)
+                {
+                    const totalTh = document.createElement('th');
+                    totalTh.textContent = "Total";
+                    scoresTableHead.appendChild(totalTh);
+                }
+                i++;
+            });
+
+            // Add turn rows with scores
+            turns.forEach((turnScores, turnIndex) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${turnIndex + 1}</td>`;
+
+                i = 0;
+                turnScores.forEach((score, playerIndex) => {
+                    const scoreTd = document.createElement('td');
+                    scoreTd.innerHTML = `
+                        <input type="number" id="score_${turnIndex}_${playerIndex}" value="${score}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
+                    `;
+                    row.appendChild(scoreTd);
+
+                    let isLastInTeam = (i+1)>=players.length || players[playerIndex].team != players[i+1].team;
+                    if(isLastInTeam)
+                    {
+                        const totalTd = document.createElement('td');
+                        totalTd.textContent = getTotalScore(players[playerIndex], turnIndex);
+                        row.appendChild(totalTd);
+                    }
+                    i++;
+                });
+                scoresTableBody.appendChild(row);
+            });
+        }
+
+        function updatePlayerName(playerIndex, newName) {
+            players[playerIndex].name = newName;
+            updateScoresTable();
+            updateQueryString();
+        }
+
+        function updatePlayerTeam(playerIndex, newTeam) {
+            players[playerIndex].team = parseInt(newTeam);
+            updateScoresTable();
+            updateQueryString();
+        }
+
+        function updateScore(turnIndex, playerIndex) {
+            const scoreInput = document.getElementById(`score_${turnIndex}_${playerIndex}`);
+            const score = parseInt(scoreInput.value);
+            turns[turnIndex][playerIndex] = isNaN(score) ? 0 : score;
+            players[playerIndex].scores[turnIndex] = turns[turnIndex][playerIndex];
+            updateScoresTable();
+            updateQueryString();
+        }
+
+        function updateQueryString() {
+            const params = new URLSearchParams();
+            
+            params.set('targetScore', document.getElementById('targetScore').value);
+            params.set('resetScore', document.getElementById('resetScore').value);
+
+            players.forEach((player, index) => {
+                params.set(`player_${index}`, player.name);
+                params.set(`team_${index}`, player.team);
+                player.scores.forEach((score, turnIndex) => {
+                    params.set(`score_${index}_${turnIndex}`, score);
+                });
+            });
+
+            history.replaceState(null, '', '?' + params.toString());
+        }
+
+        function loadFromQueryString() {
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.has('targetScore')) {
+                document.getElementById('targetScore').value = params.get('targetScore');
+            }
+
+            if (params.has('resetScore')) {
+                document.getElementById('resetScore').value = params.get('resetScore');
+            }
+
+            let playerIndex = 0;
+            while (params.has(`player_${playerIndex}`)) {
+                const playerName = params.get(`player_${playerIndex}`);
+                const playerTeam = parseInt(params.get(`team_${playerIndex}`));
+                const initialScores = [];
+                
+                let turnIndex = 0;
+                while (params.has(`score_${playerIndex}_${turnIndex}`)) {
+                    initialScores.push(parseInt(params.get(`score_${playerIndex}_${turnIndex}`)));
+                    turnIndex++;
+                }
+
+                players.push({ name: playerName, team: playerTeam, scores: initialScores });
+                playerIndex++;
+            }
+
+            for (let i = 0; i < players.length; i++) {
+                for (let j = turns.length; j < players[i].scores.length; j++) {
+                    if (turns[j]) {
+                        turns[j][i] = players[i].scores[j];
+                    } else {
+                        turns[j] = new Array(players.length).fill(0);
+                        turns[j][i] = players[i].scores[j];
+                    }
+                }
+            }
+
+            updateScoresTable();
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Mölkky Scoresheet</h1>
+
+    <div>
+        <label for="targetScore">Target score:</label>
+        <input type="number" id="targetScore" value="50" onchange="updateQueryString()">
+    </div>
+
+    <div>
+        <label for="resetScore">Reset Score:</label>
+        <input type="number" id="resetScore" value="25" onchange="updateQueryString()">
+    </div>
+    <br/>
+
+    <div>
+        <label for="playerName">Player Name:</label>
+        <input type="text" id="playerName">
+        <label for="playerTeam">Team:</label>
+        <input type="number" id="playerTeam" min="0">
+        <button onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <table id="scoresTable">
+        <thead>
+            <tr>
+                <th>Turn</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</body>
+</html>
