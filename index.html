@@ -53,6 +53,54 @@
         #addTurnBtn {
             width: 100%;
         }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #FFFFFF;
+        }
+        body.dark-mode table {
+            background-color: #1E1E1E;
+        }
+        body.dark-mode th {
+            background-color: #2C2C2C;
+        }
+        body.dark-mode input {
+            background-color: #333333;
+            color: #FFFFFF;
+        }
+        body.dark-mode button {
+            background-color: #444444;
+            color: #FFFFFF;
+            border: 1px solid #555555;
+        }
+        body.dark-mode button:hover {
+            background-color: #555555;
+        }
+
+        /* Light mode styles */
+        body.light-mode {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+        body.light-mode table {
+            background-color: #F9F9F9;
+        }
+        body.light-mode th {
+            background-color: #DDDDDD;
+        }
+        body.light-mode input {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+        body.light-mode button {
+            background-color: #EEEEEE;
+            color: #000000;
+            border: 1px solid #CCCCCC;
+        }
+        body.light-mode button:hover {
+            background-color: #DDDDDD;
+        }
     </style>
     <script>
         const players = [];
@@ -260,10 +308,22 @@
             updateScoresTable();
         }
 
+        function toggleColorMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            body.classList.toggle('light-mode');
+        }
+
+        // Initialize with dark mode
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('dark-mode');
+        });
     </script>
 </head>
 <body>
     <h1>Mölkky Scoresheet</h1>
+
+    <button onclick="toggleColorMode()">Toggle Dark Mode</button>
 
     <div>
         <label for="targetScore">Target score:</label>
