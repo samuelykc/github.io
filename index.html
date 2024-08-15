@@ -193,7 +193,7 @@
                 `;
                 scoresTableHead.appendChild(th);
 
-                let isLastInTeam = (i+1)>=players.length || players[index].team != players[i+1].team;
+                let isLastInTeam = (i+1)>=players.length || player.team != players[i+1].team;
                 if(isLastInTeam)
                 {
                     const totalTh = document.createElement('th');
@@ -208,22 +208,21 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `<td>${turnIndex + 1}</td>`;
 
-                i = 0;
-                turnScores.forEach((score, playerIndex) => {
+                players.forEach((player, playerIndex) =>
+                {
                     const scoreTd = document.createElement('td');
                     scoreTd.innerHTML = `
-                        <input type="number" id="score_${turnIndex}_${playerIndex}" value="${score}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
+                        <input type="number" id="score_${turnIndex}_${playerIndex}" value="${player.scores[turnIndex]}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
                     `;
                     row.appendChild(scoreTd);
 
-                    let isLastInTeam = (i+1)>=players.length || players[playerIndex].team != players[i+1].team;
+                    let isLastInTeam = (playerIndex+1)>=players.length || player.team != players[playerIndex+1].team;
                     if(isLastInTeam)
                     {
                         const totalTd = document.createElement('td');
-                        totalTd.textContent = getTotalScore(players[playerIndex], turnIndex);
+                        totalTd.textContent = getTotalScore(player, turnIndex);
                         row.appendChild(totalTd);
                     }
-                    i++;
                 });
                 scoresTableBody.appendChild(row);
             });
