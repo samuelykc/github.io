@@ -104,7 +104,7 @@
     </style>
     <script>
         const players = [];
-        const turns = [];
+        let turnCount = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
             const addButton = document.createElement('button');
@@ -115,9 +115,6 @@
 
             loadFromQueryString();
 
-            // Initialize with one turn if no turns exist
-            if (turns.length === 0) addTurnScores();
-
             document.getElementById('playerTeam').value = 1;
         });
 
@@ -125,11 +122,8 @@
             const playerName = document.getElementById('playerName').value;
             const playerTeam = parseInt(document.getElementById('playerTeam').value);
             if (playerName && !isNaN(playerTeam)) {
-                const initialScores = new Array(turns.length).fill(0);
+                const initialScores = new Array(turnCount).fill(0);
                 players.push({ name: playerName, team: playerTeam, scores: initialScores });
-                turns.forEach(turn => {
-                    turn.push(0);
-                });
                 document.getElementById('playerName').value = '';
                 updateScoresTable();
                 updateQueryString();
@@ -137,10 +131,9 @@
         }
 
         function addTurnScores() {
-            const turnScores = players.map(() => 0); // Initialize all scores to 0 for the new turn
-            turns.push(turnScores);
+            turnCount++;
             players.forEach((player, index) => {
-                player.scores.push(turnScores[index]);
+                player.scores.push(0);
             });
             updateScoresTable();
             updateQueryString();
@@ -204,7 +197,7 @@
             });
 
             // Add turn rows with scores
-            turns.forEach((turnScores, turnIndex) => {
+            for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td>${turnIndex + 1}</td>`;
 
@@ -225,7 +218,7 @@
                     }
                 });
                 scoresTableBody.appendChild(row);
-            });
+            }
         }
 
         function updatePlayerName(playerIndex, newName) {
@@ -242,9 +235,9 @@
 
         function updateScore(turnIndex, playerIndex) {
             const scoreInput = document.getElementById(`score_${turnIndex}_${playerIndex}`);
-            const score = parseInt(scoreInput.value);
-            turns[turnIndex][playerIndex] = isNaN(score) ? 0 : score;
-            players[playerIndex].scores[turnIndex] = turns[turnIndex][playerIndex];
+            let score = parseInt(scoreInput.value);
+
+            players[playerIndex].scores[turnIndex] = isNaN(score) ? 0 : score;
             updateScoresTable();
             updateQueryString();
         }
@@ -293,15 +286,9 @@
                 playerIndex++;
             }
 
+            //find turnCount
             for (let i = 0; i < players.length; i++) {
-                for (let j = turns.length; j < players[i].scores.length; j++) {
-                    if (turns[j]) {
-                        turns[j][i] = players[i].scores[j];
-                    } else {
-                        turns[j] = new Array(players.length).fill(0);
-                        turns[j][i] = players[i].scores[j];
-                    }
-                }
+                if(players[i].scores.length > turnCount) turnCount = players[i].scores.length;
             }
 
             updateScoresTable();
