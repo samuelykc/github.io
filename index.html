@@ -45,6 +45,13 @@
             color: #FFFFFF;
             border: 1px solid #555555;
         }
+        th input[type="number"] {
+            width: 30px;
+        }
+        th input[type="text"] {
+            text-align: center;
+        }
+
         button {
             background-color: #444444;
             color: #FFFFFF;
@@ -221,8 +228,8 @@
                 const th = document.createElement('th');
                 th.innerHTML = `
                    <div>
-                       Player Name: <input type="text" value="${player.name}" onchange="updatePlayerName(${index}, this.value)">
-                       Team: <input type="number" value="${player.team}" min="0" onchange="updatePlayerTeam(${index}, this.value)">
+                       <input type="text" value="${player.name}" onchange="updatePlayerName(${index}, this.value)">
+                       (<input type="number" value="${player.team}" min="0" onchange="updatePlayerTeam(${index}, this.value)">)
                    </div>
                 `;
                 scoresTableHead.appendChild(th);
