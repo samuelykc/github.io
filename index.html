@@ -333,19 +333,22 @@
 <body>
     <h1>Mölkky Scoresheet</h1>
 
-    <button onclick="toggleColorMode()">Toggle Dark Mode</button>
+    <div>
+        <button onclick="toggleColorMode()">Toggle Dark Mode</button>
+    </div>
+    <br/>
 
     <div>
         <label for="targetScore">Target score:</label>
-        <input type="number" id="targetScore" value="50" onchange="updateQueryString()">
+        <input type="number" id="targetScore" value="50" onchange="updateScoresTable(); updateQueryString()">
     </div>
     <div>
         <label for="resetScore">Reset Score:</label>
-        <input type="number" id="resetScore" value="25" onchange="updateQueryString()">
+        <input type="number" id="resetScore" value="25" onchange="updateScoresTable(); updateQueryString()">
     </div>
     <div>
         <label for="consecutiveMissDropout">3 Miss Dropout:</label>
-        <input type="checkbox" id="consecutiveMissDropout" onchange="updateQueryString()">
+        <input type="checkbox" id="consecutiveMissDropout" onchange="updateScoresTable(); updateQueryString()">
     </div>
     <br/>
 
