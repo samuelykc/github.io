@@ -50,8 +50,17 @@
             background-color: #555555;
         }
 
+        .button-container {
+            display: flex;
+            width: 100%;
+            margin-top: 8px;
+        }
+        button#removeTurnBtn {
+            width: 80px;
+            margin-right: 6px;
+        }
         button#addTurnBtn {
-            width: 80%;
+            flex-grow: 1;
         }
 
         /* Dark mode styles */
@@ -324,6 +333,10 @@
             body.classList.toggle('light-mode');
         }
 
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href);
+        }
+
         // Initialize with dark mode
         document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('dark-mode');
@@ -335,6 +348,7 @@
 
     <div>
         <button onclick="toggleColorMode()">Toggle Dark Mode</button>
+        <button onclick="copyLink()">Copy Link</button>
     </div>
     <br/>
 
@@ -370,7 +384,7 @@
         </tbody>
     </table>
 
-    <div>
+    <div class="button-container">
         <button id="removeTurnBtn" onclick="removeTurnScores()">Remove Turn</button>
         <button id="addTurnBtn" onclick="addTurnScores()">Add Turn</button>
     </div>
