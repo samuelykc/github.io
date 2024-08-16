@@ -165,9 +165,25 @@
                 return turnSum;
             }, 0);
         }
+        function getPlayerTotalScore(player, turnIndex) { return getTotalScore(player.scores, turnIndex); }
+        function getTeamTotalScore(teamScores, turnIndex) { return getTotalScore(teamScores, turnIndex); }
 
-        function getPlayerTotalScore(player, turnIndex) {
-            return getTotalScore(player.scores, turnIndex);
+        function getTeamScores(team, turnIndex) {
+            const teamScores = [];
+
+            // Retrieve scores for the specified team
+            players.filter(player => player.team === team) // Filter players by the given team
+                   .forEach(player => player.scores.forEach((score, index) => // Get scores for that turn
+                    {
+                        if(teamScores[index]) teamScores[index] += score;
+                        else teamScores[index] = score;
+                    }));
+
+            console.log(players)
+            console.log(players.filter(player => player.team === team))
+            console.log(teamScores)
+
+            return teamScores;
         }
 
         function updateScoresTable() {
@@ -202,6 +218,10 @@
                 i++;
             });
 
+            // Compute each team's scores on each round
+            let allTeamScores = {};
+            players.forEach((player, index) => { if(!allTeamScores[player.team]) allTeamScores[player.team]=getTeamScores(player.team); });
+
             // Add turn rows with scores
             for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
                 const row = document.createElement('tr');
@@ -219,7 +239,8 @@
                     if(isLastInTeam)
                     {
                         const totalTd = document.createElement('td');
-                        totalTd.textContent = getPlayerTotalScore(player, turnIndex);
+                        // totalTd.textContent = getPlayerTotalScore(player, turnIndex);
+                        totalTd.textContent = getTeamTotalScore(allTeamScores[player.team], turnIndex);
                         row.appendChild(totalTd);
                     }
                 });
