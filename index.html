@@ -139,15 +139,16 @@
             updateQueryString();
         }
 
-        function getTotalScore(player, turnIndex) {
+        function getTotalScore(turnScores, turnIndex) {
             const targetScore = parseInt(document.getElementById('targetScore').value);
             const resetScore = parseInt(document.getElementById('resetScore').value);
+            const consecutiveMissDropout = document.getElementById('consecutiveMissDropout').checked;
 
-            return player.scores.slice(0, turnIndex + 1).reduce((total, score, index, scores) => {
+            return turnScores.slice(0, turnIndex + 1).reduce((total, score, index, scores) => {
                 let turnSum = total + score;
-                if (turnSum > targetScore) {
-                    turnSum = resetScore;
-                }
+
+                // Check for brust
+                if (turnSum > targetScore) return resetScore;
 
                 // Check for three consecutive zeros
                 if (index >= 2 &&
@@ -156,12 +157,17 @@
                     scores[index - 2] === 0
                 ) {
                     // Set all future scores to 0
-                    player.scores.fill(0, index + 1);
-                    turnSum = 0;
+                    if(consecutiveMissDropout) turnScores.fill(0, index + 1);
+
+                    return 0;
                 }
-                
+
                 return turnSum;
             }, 0);
+        }
+
+        function getPlayerTotalScore(player, turnIndex) {
+            return getTotalScore(player.scores, turnIndex);
         }
 
         function updateScoresTable() {
@@ -213,7 +219,7 @@
                     if(isLastInTeam)
                     {
                         const totalTd = document.createElement('td');
-                        totalTd.textContent = getTotalScore(player, turnIndex);
+                        totalTd.textContent = getPlayerTotalScore(player, turnIndex);
                         row.appendChild(totalTd);
                     }
                 });
@@ -247,6 +253,7 @@
             
             params.set('targetScore', document.getElementById('targetScore').value);
             params.set('resetScore', document.getElementById('resetScore').value);
+            params.set('consecutiveMissDropout', document.getElementById('consecutiveMissDropout').checked);
 
             players.forEach((player, index) => {
                 params.set(`player_${index}`, player.name);
@@ -262,13 +269,9 @@
         function loadFromQueryString() {
             const params = new URLSearchParams(window.location.search);
 
-            if (params.has('targetScore')) {
-                document.getElementById('targetScore').value = params.get('targetScore');
-            }
-
-            if (params.has('resetScore')) {
-                document.getElementById('resetScore').value = params.get('resetScore');
-            }
+            if (params.has('targetScore')) document.getElementById('targetScore').value = params.get('targetScore');
+            if (params.has('resetScore')) document.getElementById('resetScore').value = params.get('resetScore');
+            document.getElementById('consecutiveMissDropout').checked = params.has('consecutiveMissDropout')? params.get('consecutiveMissDropout')==='true': true;
 
             let playerIndex = 0;
             while (params.has(`player_${playerIndex}`)) {
@@ -315,10 +318,13 @@
         <label for="targetScore">Target score:</label>
         <input type="number" id="targetScore" value="50" onchange="updateQueryString()">
     </div>
-
     <div>
         <label for="resetScore">Reset Score:</label>
         <input type="number" id="resetScore" value="25" onchange="updateQueryString()">
+    </div>
+    <div>
+        <label for="consecutiveMissDropout">3 Miss Dropout:</label>
+        <input type="checkbox" id="consecutiveMissDropout" onchange="updateQueryString()">
     </div>
     <br/>
 
