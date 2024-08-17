@@ -146,7 +146,8 @@
             const playerTeam = parseInt(document.getElementById('playerTeam').value);
             if (playerName && !isNaN(playerTeam)) {
                 const initialScores = new Array(turnCount).fill(0);
-                players.push({ name: playerName, team: playerTeam, scores: initialScores });
+                const initialSymbols = new Array(turnCount).fill(0);
+                players.push({ name: playerName, team: playerTeam, scores: initialScores, symbols: initialSymbols });
                 document.getElementById('playerName').value = '';
                 updateScoresTable();
                 updateQueryString();
@@ -165,6 +166,7 @@
             turnCount++;
             players.forEach((player) => {
                 player.scores.push(0);
+                player.symbols.push(0);
             });
             updateScoresTable();
             updateQueryString();
