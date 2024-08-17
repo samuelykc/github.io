@@ -255,12 +255,23 @@
 
                 players.forEach((player, playerIndex) =>
                 {
+                    const turnScore = player.scores[turnIndex];
+
                     const scoreTd = document.createElement('td');
                     scoreTd.innerHTML = `
-                        <input type="number" id="score_${turnIndex}_${playerIndex}" value="${player.scores[turnIndex]}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
+                        <input type="number" id="score_${turnIndex}_${playerIndex}" value="${turnScore}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
+                    `;
+                    if(turnScore > 0) scoreTd.innerHTML += `
+                        <select id="symbol_${turnIndex}_${playerIndex}" onchange="updateSymbol(${turnIndex}, ${playerIndex})">
+                            <option value="0">${""}</option>
+                            <option value="1">${"⭕️"}</option>
+                            <option value="2">${"🔲"}</option>
+                            <option value="3">${"|||"}</option>
+                        </select>
                     `;
                     row.appendChild(scoreTd);
 
+                    //append team score sum
                     let isLastInTeam = (playerIndex+1)>=players.length || player.team != players[playerIndex+1].team;
                     if(isLastInTeam)
                     {
@@ -271,6 +282,15 @@
                     }
                 });
                 scoresTableBody.appendChild(row);
+
+                players.forEach((player, playerIndex) =>
+                {
+                    //load dropdown selected values
+                    const dropdownValue = player.symbols[turnIndex] || 0;
+                    const dropdownElement = document.getElementById(`symbol_${turnIndex}_${playerIndex}`);
+
+                    if(dropdownElement) dropdownElement.options[dropdownValue].selected = true;
+                });
             }
         }
 
@@ -295,6 +315,13 @@
             updateQueryString();
         }
 
+        function updateSymbol(turnIndex, playerIndex) {
+            const symbolInput = document.getElementById(`symbol_${turnIndex}_${playerIndex}`);
+
+            players[playerIndex].symbols[turnIndex] = symbolInput?.value?? 0;
+            updateQueryString();
+        }
+
         function updateQueryString() {
             const params = new URLSearchParams();
             
@@ -307,6 +334,9 @@
                 params.set(`team_${index}`, player.team);
                 player.scores.forEach((score, turnIndex) => {
                     params.set(`score_${index}_${turnIndex}`, score);
+
+                    const symbol = document.getElementById(`symbol_${turnIndex}_${index}`)?.value;
+                    if(symbol>0) params.set(`symbol_${index}_${turnIndex}`, symbol); // Save dropdown value
                 });
             });
 
@@ -325,14 +355,17 @@
                 const playerName = params.get(`player_${playerIndex}`);
                 const playerTeam = parseInt(params.get(`team_${playerIndex}`));
                 const initialScores = [];
+                const initialSymbols = [];
                 
                 let turnIndex = 0;
                 while (params.has(`score_${playerIndex}_${turnIndex}`)) {
                     initialScores.push(parseInt(params.get(`score_${playerIndex}_${turnIndex}`)));
+                    initialSymbols.push(parseInt(params.get(`symbol_${playerIndex}_${turnIndex}`))?? 0);
+                    console.log(parseInt(params.get(`symbol_${playerIndex}_${turnIndex}`)));
                     turnIndex++;
                 }
 
-                players.push({ name: playerName, team: playerTeam, scores: initialScores });
+                players.push({ name: playerName, team: playerTeam, scores: initialScores, symbols: initialSymbols });
                 playerIndex++;
             }
 
