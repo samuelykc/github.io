@@ -127,6 +127,7 @@
     <script>
         const players = [];
         let turnCount = 0;
+        let readOnly = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             // Load data
@@ -226,7 +227,11 @@
             let i = 0;
             players.forEach((player, index) => {
                 const th = document.createElement('th');
-                th.innerHTML = `
+                th.innerHTML = readOnly?
+                `
+                   <div>${player.name} (Team ${player.team})</div>
+                `:
+                `
                    <div>
                        <input type="text" value="${player.name}" onchange="updatePlayerName(${index}, this.value)">
                        (<input type="number" value="${player.team}" min="0" onchange="updatePlayerTeam(${index}, this.value)">)
@@ -256,12 +261,17 @@
                 players.forEach((player, playerIndex) =>
                 {
                     const turnScore = player.scores[turnIndex];
+                    const getSymbolString = function (value) { switch(value) { case 1: return "⭕️"; case 2: return "🔲"; case 3: return "|||"; } return ""; };
 
                     const scoreTd = document.createElement('td');
-                    scoreTd.innerHTML = `
+                    scoreTd.innerHTML = readOnly?
+                    `
+                        <div>${turnScore} ${turnScore>0? getSymbolString(player.symbols[turnIndex]) : ""}</div>
+                    `:
+                    `
                         <input type="number" id="score_${turnIndex}_${playerIndex}" value="${turnScore}" min="0" max="12" onchange="updateScore(${turnIndex}, ${playerIndex})">
                     `;
-                    if(turnScore > 0) scoreTd.innerHTML += `
+                    if(!readOnly && turnScore > 0) scoreTd.innerHTML += `
                         <select id="symbol_${turnIndex}_${playerIndex}" onchange="updateSymbol(${turnIndex}, ${playerIndex})">
                             <option value="0">${""}</option>
                             <option value="1">${"⭕️"}</option>
@@ -382,6 +392,18 @@
             body.classList.toggle('dark-mode');
             body.classList.toggle('light-mode');
         }
+        function toggleReadonlyMode() {
+            readOnly = !readOnly;
+            document.getElementById('targetScore').disabled = readOnly;
+            document.getElementById('resetScore').disabled = readOnly;
+            document.getElementById('consecutiveMissDropout').disabled = readOnly;
+
+            document.getElementById('addPlayerDiv').hidden = readOnly;
+            document.getElementById('removeTurnBtn').hidden = readOnly;
+            document.getElementById('addTurnBtn').hidden = readOnly;
+
+            updateScoresTable();
+        }
 
         function copyLink() {
             navigator.clipboard.writeText(window.location.href);
@@ -393,6 +415,7 @@
 
     <div>
         <button onclick="toggleColorMode()">Toggle Dark Mode</button>
+        <button onclick="toggleReadonlyMode()">Toggle Read Only</button>
         <button onclick="copyLink()">Copy Link</button>
     </div>
     <br/>
@@ -411,7 +434,7 @@
     </div>
     <br/>
 
-    <div>
+    <div id="addPlayerDiv">
         <label for="playerName">Player Name:</label>
         <input type="text" id="playerName">
         <label for="playerTeam">Team:</label>
