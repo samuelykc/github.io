@@ -63,6 +63,10 @@
             background-color: #555555;
         }
 
+        .toolButton {
+            font-size: 100%;
+            padding: 4px 6px 6px 4px;
+        }
         .button-container {
             display: flex;
             width: 100%;
@@ -414,9 +418,9 @@
     <h1>Mölkky Scoresheet</h1>
 
     <div>
-        <button onclick="toggleColorMode()">Toggle Dark Mode</button>
-        <button onclick="toggleReadonlyMode()">Toggle Read Only</button>
-        <button onclick="copyLink()">Copy Link</button>
+        <button class="toolButton" onclick="toggleColorMode()">🌙 Dark Mode</button>
+        <button class="toolButton" onclick="toggleReadonlyMode()">📖 Read Only</button>
+        <button class="toolButton" onclick="copyLink()">🔗 Copy Link</button>
     </div>
     <br/>
 
